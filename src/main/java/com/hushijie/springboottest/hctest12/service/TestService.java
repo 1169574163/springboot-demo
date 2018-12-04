@@ -6,7 +6,7 @@ package com.hushijie.springboottest.hctest12.service;
  * </p>
  *
  * @author wubin
- * @since 2018-12-03
+ * @since 2018-12-04
  */
 public interface TestService {
 

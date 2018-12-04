@@ -1,12 +1,11 @@
 package ${package.Service};
 
 import ${package.Entity}.${entity};
-import ${package.Mapper}.${table.mapperName};
 import ${superServiceClassPackage};
 
 /**
  * <p>
- * $!{table.comment} 通用能力下沉服务类
+ * $!{table.comment} 数据仓库服务类
  * </p>
  *
  * @author ${author}
@@ -16,11 +15,5 @@ import ${superServiceClassPackage};
 interface ${table.serviceName} : ${superServiceClass}<${entity}>
 #else
 public interface ${table.serviceName} extends ${superServiceClass}<${entity}> {
-    /**
-     * 获取${table.mapperName}接口
-     *
-     * @return ${table.mapperName}
-     */
-    ${table.mapperName} getMapper();
 }
 #end

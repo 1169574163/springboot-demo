@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -43,20 +44,27 @@ import java.util.Properties;
  */
 public class MpGeneratorWrapper {
 
-    /**
-     * controller 层标记
-     */
-    public static final String FLAG_CONTROLLER = "controller";
+    public static enum MpCodeTypeEnum {
+        /**
+         * controller 层代码生成器
+         */
+        CONTROLLER,
 
-    /**
-     * service 层标记
-     */
-    public static final String FLAG_SERVICE = "service";
+        /**
+         * service 层代码生成器
+         */
+        SERVICE,
 
-    /**
-     * dao 层标记
-     */
-    public static final String FLAG_DAO = "dao";
+        /**
+         * repository 层代码生成器
+         */
+        REPOSITORY,
+
+        /**
+         * dao 层代码生成器
+         */
+        DAO
+    }
 
     /**
      * 创建人
@@ -151,11 +159,6 @@ public class MpGeneratorWrapper {
     private DataSourceConfig dataSourceConfig;
 
     /**
-     * 数据库表配置，通过该配置，可指定需要生成哪些表或者排除哪些表
-     */
-    private StrategyConfig strategyConfig;
-
-    /**
      * 自定义的模版引擎
      */
     private MyVelocityTemplateEngine templateEngine;
@@ -191,42 +194,51 @@ public class MpGeneratorWrapper {
      * 生成Controller层代码
      */
     public void generateController() {
-        execute(new AutoGenerator(), FLAG_CONTROLLER);
+        execute(MpGeneratorWrapper.MpCodeTypeEnum.CONTROLLER);
     }
 
     /**
      * 生成Controller层代码
      */
     public void generateService() {
-        execute(new AutoGenerator(), FLAG_SERVICE);
+        execute(MpGeneratorWrapper.MpCodeTypeEnum.SERVICE);
     }
 
     /**
      * 生成Controller层代码
      */
     public void generateDao() {
-        execute(new AutoGenerator(), FLAG_DAO);
+        execute(MpGeneratorWrapper.MpCodeTypeEnum.DAO);
     }
 
     /**
      * 执行代码生成器
      *
-     * @param mpg           代码生成器
-     * @param generatorFlag 生成器标记
+     * @param codeTypeEnums 代码类型数组
      */
-    public void execute(AutoGenerator mpg, String generatorFlag) {
-        if (null != mpg) {
+    public void execute(MpCodeTypeEnum... codeTypeEnums) {
+        if (null != codeTypeEnums) {
             // 校验参数
             validate();
-            // 设置代码生成器
-            setGlobalConfig(mpg, generatorFlag);
-            setPackageConfig(mpg, generatorFlag);
-            setInjectionConfig(mpg, generatorFlag);
-            setTemplateConfig(mpg, generatorFlag);
-            setDBConfig(mpg);
-            mpg.setTemplateEngine(templateEngine);
-            // 生成代码
-            mpg.execute();
+            List<AutoGenerator> generators = new ArrayList<>(codeTypeEnums.length);
+            new AutoGenerator();
+            for (MpCodeTypeEnum codeTypeEnum : codeTypeEnums) {
+                if (null != codeTypeEnum) {
+                    // 设置代码生成器
+                    AutoGenerator mpg = new AutoGenerator();
+                    mpg.setDataSource(dataSourceConfig);
+                    mpg.setTemplateEngine(templateEngine);
+                    setGlobalConfig(mpg, codeTypeEnum);
+                    setPackageConfig(mpg, codeTypeEnum);
+                    setInjectionConfig(mpg, codeTypeEnum);
+                    setTemplateConfig(mpg, codeTypeEnum);
+                    setStrategyConfig(mpg, codeTypeEnum);
+                    generators.add(mpg);
+                }
+            }
+            for (AutoGenerator generator : generators) {
+                generator.execute();
+            }
         }
     }
 
@@ -268,58 +280,40 @@ public class MpGeneratorWrapper {
                 + File.separator
                 + Optional.ofNullable(this.moduleName).orElse("");
         this.dataSourceConfig = getDataSourceConfig();
-        this.strategyConfig = getStrategyConfig();
         this.isReload = false;
     }
 
     /**
      * 设置全局策略配置
      *
-     * @param mpg           代码生成器
-     * @param generatorFlag 生成器标记
+     * @param mpg          代码生成器
+     * @param codeTypeEnum 代码类型
      */
-    private void setGlobalConfig(AutoGenerator mpg, String generatorFlag) {
-        GlobalConfig gc = new GlobalConfig();
+    private void setGlobalConfig(AutoGenerator mpg, MpCodeTypeEnum codeTypeEnum) {
+        GlobalConfig gc = new GlobalConfig()
+                .setFileOverride(true)
+                .setOpen(true)
+                .setEnableCache(false)
+                .setKotlin(false)
+                .setActiveRecord(false)
+                .setBaseResultMap(true)
+                .setBaseColumnList(true)
+                .setIdType(IdType.AUTO);
         //生成文件的输出目录-[默认值：D 盘根目录]
         gc.setOutputDir(path + javaDir);
-        //是否覆盖已有文件-[默认值：false]
-        gc.setFileOverride(true);
-        //是否打开输出目录-[默认值：true]
-        gc.setOpen(true);
-        //是否在xml中添加二级缓存配置-[默认值：false]
-        gc.setEnableCache(false);
-        //开发人员-[默认值：null]
         gc.setAuthor(author);
-        //开启 Kotlin 模式-[默认值：false]
-        gc.setKotlin(false);
-        //开启 ActiveRecord 模式-[默认值：false]
-        gc.setActiveRecord(false);
-        //开启 BaseResultMap-[默认值：false]
-        gc.setBaseResultMap(true);
-        //开启 baseColumnList-[默认值：false]
-        gc.setBaseColumnList(true);
-        //指定生成的主键的ID类型-[默认值：null]
-        gc.setIdType(IdType.AUTO);
         //命名方式
-        if (FLAG_DAO.equals(generatorFlag)) {
-            //实体命名方式-[默认值：null 例如：%sDO 生成 UserDO]
-            gc.setEntityName("%sDO");
-            //mapper 命名方式-[默认值：null 例如：%sMapper 生成 UserMapper]
-            gc.setMapperName("%sMapper");
-            //mapper xml 命名方式-[默认值：null 例如：%sMapper 生成 UserMapper.xml]
-            gc.setXmlName("%sMapper");
-            //service 命名方式-[默认值：null 例如：%sService 生成 UserService]
-            gc.setServiceName("%sInnerService");
-            //service impl 命名方式-[默认值：null 例如：%sServiceImpl 生成 UserServiceImpl]
-            gc.setServiceImplName("%sInnerServiceImpl");
-        } else if (FLAG_SERVICE.equals(generatorFlag)) {
-            //service 命名方式-[默认值：null 例如：%sService 生成 UserService]
+        gc.setEntityName("%sDO");
+        gc.setMapperName("%sMapper");
+        gc.setXmlName("%sMapper");
+        gc.setControllerName("%sController");
+        if (Objects.equals(MpCodeTypeEnum.REPOSITORY, codeTypeEnum)) {
+            gc.setServiceName("%sRepository");
+            gc.setServiceImplName("%sRepositoryImpl");
+        }
+        if (Objects.equals(MpCodeTypeEnum.SERVICE, codeTypeEnum)) {
             gc.setServiceName("%sService");
-            //service impl 命名方式-[默认值：null 例如：%sServiceImpl 生成 UserServiceImpl]
             gc.setServiceImplName("%sServiceImpl");
-        } else if (FLAG_CONTROLLER.equals(generatorFlag)) {
-            //controller 命名方式-[默认值：null 例如：%sController 生成 UserController]
-            gc.setControllerName("%sController");
         }
         mpg.setGlobalConfig(gc);
     }
@@ -330,45 +324,26 @@ public class MpGeneratorWrapper {
      * 通过该配置，指定生成代码的包路径
      * </p>
      *
-     * @param mpg           代码生成器
-     * @param generatorFlag 生成器标记
+     * @param mpg          代码生成器
+     * @param codeTypeEnum 代码类型
      */
-    private void setPackageConfig(AutoGenerator mpg, String generatorFlag) {
+    private void setPackageConfig(AutoGenerator mpg, MpCodeTypeEnum codeTypeEnum) {
         PackageConfig pc = new PackageConfig()
-                //父包名。如果为空，将下面子包名必须写全部， 否则就只需写子包名
                 .setParent(basePackage)
-                //父包模块名
-                .setModuleName(moduleName);
-        if (FLAG_DAO.equals(generatorFlag)) {
-            //Entity包名
-            pc.setEntity("model");
-            //Mapper包名
-            pc.setMapper("mapper");
-            //Mapper XML包名
-            pc.setXml(null);
-            //Service包名
-            pc.setService("innerservice");
-            //Service impl包名
-            pc.setServiceImpl("innerservice.impl");
-            //Controller包名
-            pc.setController(null);
-        } else if (FLAG_SERVICE.equals(generatorFlag)) {
-            pc.setEntity(null);
-            pc.setMapper(null);
-            pc.setXml(null);
-            //Service包名
+                .setModuleName(moduleName)
+                .setEntity("model")
+                .setMapper("mapper")
+                .setXml(null)
+                .setService(null)
+                .setServiceImpl(null)
+                .setController("controller");
+        if (Objects.equals(MpCodeTypeEnum.REPOSITORY, codeTypeEnum)) {
+            pc.setService("repository");
+            pc.setServiceImpl("repository.impl");
+        }
+        if (Objects.equals(MpCodeTypeEnum.SERVICE, codeTypeEnum)) {
             pc.setService("service");
-            //Service impl包名
             pc.setServiceImpl("service.impl");
-            pc.setController(null);
-        } else if (FLAG_CONTROLLER.equals(generatorFlag)) {
-            pc.setEntity(null);
-            pc.setMapper(null);
-            pc.setXml(null);
-            pc.setService(null);
-            pc.setServiceImpl(null);
-            //Controller包名
-            pc.setController("controller");
         }
         mpg.setPackageInfo(pc);
     }
@@ -379,10 +354,10 @@ public class MpGeneratorWrapper {
      * 通过该配置，可注入自定义参数等操作以实现个性化操作
      * </p>
      *
-     * @param mpg           代码生成器
-     * @param generatorFlag 生成器标记
+     * @param mpg          代码生成器
+     * @param codeTypeEnum 代码类型
      */
-    private void setInjectionConfig(AutoGenerator mpg, String generatorFlag) {
+    private void setInjectionConfig(AutoGenerator mpg, MpCodeTypeEnum codeTypeEnum) {
         InjectionConfig cfg = new InjectionConfig() {
             @Override
             public void initMap() {
@@ -393,7 +368,7 @@ public class MpGeneratorWrapper {
         };
         List<FileOutConfig> focList = new ArrayList<>();
 
-        if (FLAG_DAO.equals(generatorFlag)) {
+        if (Objects.equals(MpCodeTypeEnum.DAO, codeTypeEnum)) {
             focList.add(new FileOutConfig("/mybatis-plus/mapper.xml.vm") {
                 @Override
                 public String outputFile(TableInfo tableInfo) {
@@ -404,19 +379,7 @@ public class MpGeneratorWrapper {
                             + tableInfo.getXmlName() + ".xml";
                 }
             });
-        } else if (FLAG_SERVICE.equals(generatorFlag)) {
-//            focList.add(new FileOutConfig("/mybatis-plus/entity.java.vm") {
-//                @Override
-//                public String outputFile(TableInfo tableInfo) {
-//                    // 自定义输入文件名称
-//                    return path + javaModuleDir + "/model/"
-//                            + tableInfo.getEntityName() + "DO.java";
-//                }
-//            });
-        } else if (FLAG_CONTROLLER.equals(generatorFlag)) {
-            //
         }
-
         cfg.setFileOutConfigList(focList);
         mpg.setCfg(cfg);
     }
@@ -424,77 +387,74 @@ public class MpGeneratorWrapper {
     /**
      * 模版文件配置
      *
-     * @param mpg           代码生成器
-     * @param generatorFlag 生成器标记
+     * @param mpg          代码生成器
+     * @param codeTypeEnum 代码类型
      */
-    private void setTemplateConfig(AutoGenerator mpg, String generatorFlag) {
-        TemplateConfig tc = new TemplateConfig();
-        if (FLAG_DAO.equals(generatorFlag)) {
-            //Java 实体类模板
-            tc.setEntity("/mybatis-plus/entity.java");
-            //mapper 模板
-            tc.setMapper("/mybatis-plus/mapper.java");
-            //mapper xml 模板
-            tc.setXml(null);
-            //Service 类模板
-            tc.setService("/mybatis-plus/innerService.java");
-            //Service impl类模板
-            tc.setServiceImpl("/mybatis-plus/innerServiceImpl.java");
-            //controller 控制器模板
-            tc.setController(null);
-        } else if (FLAG_SERVICE.equals(generatorFlag)) {
-            tc.setEntity(null);
-            tc.setMapper(null);
-            tc.setXml(null);
-            //Service 类模板
-            tc.setService("/mybatis-plus/service.java");
-            //Service impl类模板
-            tc.setServiceImpl("/mybatis-plus/serviceImpl.java");
-            tc.setController(null);
-        } else if (FLAG_CONTROLLER.equals(generatorFlag)) {
-            tc.setEntity(null);
-            tc.setMapper(null);
-            tc.setXml(null);
-            tc.setService(null);
-            tc.setServiceImpl(null);
-            //controller 控制器模板
-            tc.setController("/mybatis-plus/controller.java");
+    private void setTemplateConfig(AutoGenerator mpg, MpCodeTypeEnum codeTypeEnum) {
+        TemplateConfig tc = new TemplateConfig()
+                .setEntity(null)
+                .setMapper(null)
+                .setXml(null)
+                .setService(null)
+                .setServiceImpl(null)
+                .setController(null);
+        if (Objects.equals(MpCodeTypeEnum.DAO, codeTypeEnum)) {
+            tc.setEntity("/mybatis-plus/entity.java.vm");
+            tc.setMapper("/mybatis-plus/mapper.java.vm");
+        }
+        if (Objects.equals(MpCodeTypeEnum.REPOSITORY, codeTypeEnum)) {
+            tc.setService("/mybatis-plus/repository.java.vm");
+            tc.setServiceImpl("/mybatis-plus/repositoryImpl.java.vm");
+        }
+        if (Objects.equals(MpCodeTypeEnum.SERVICE, codeTypeEnum)) {
+            tc.setService("/mybatis-plus/service.java.vm");
+            tc.setServiceImpl("/mybatis-plus/serviceImpl.java.vm");
+        }
+        if (Objects.equals(MpCodeTypeEnum.CONTROLLER, codeTypeEnum)) {
+            tc.setController("/mybatis-plus/controller.java.vm");
         }
         mpg.setTemplate(tc);
     }
 
     /**
-     * 设置数据库
+     * 数据库表配置
      *
-     * @param mpg 代码生成器
+     * @param mpg          代码生成器
+     * @param codeTypeEnum 代码类型
      */
-    private void setDBConfig(AutoGenerator mpg) {
-        mpg.setDataSource(this.dataSourceConfig);
-        mpg.setStrategy(this.strategyConfig);
-    }
-
-    /**
-     * 数据源配置
-     * <p>
-     * 通过该配置，指定需要生成代码的具体数据库
-     * </p>
-     *
-     * @return DataSourceConfig
-     */
-    private DataSourceConfig getDataSourceConfig() {
-        return new DataSourceConfig()
-                //数据库类型-[该类内置了常用的数据库类型【必须】]
-                .setDbType(DbType.MYSQL)
-                //类型转换-[默认由 dbType 类型决定选择对应数据库内置实现]
-                .setTypeConvert(new MySqlTypeConvert())
-                //驱动连接的URL
-                .setUrl(this.url)
-                //驱动名称
-                .setDriverName(this.driverName)
-                //数据库连接用户名
-                .setUsername(this.username)
-                //数据库连接密码
-                .setPassword(this.password);
+    private void setStrategyConfig(AutoGenerator mpg, MpCodeTypeEnum codeTypeEnum) {
+        StrategyConfig sc = getStrategyConfig();
+        if (Objects.equals(MpCodeTypeEnum.DAO, codeTypeEnum)) {
+            //自定义继承的Entity类全称，带包名
+            sc.setSuperEntityClass(Optional.ofNullable(this.basePackage)
+                    .map(n -> n + ".common.base.entity.BaseEntity")
+                    .orElse(null));
+            //自定义基础的Entity类，公共字段
+            sc.setSuperEntityColumns("id", "gmt_create", "gmt_modified");
+            //自定义继承的Mapper类全称，带包名
+            sc.setSuperMapperClass(null);
+        }
+        if (Objects.equals(MpCodeTypeEnum.REPOSITORY, codeTypeEnum)) {
+            //自定义继承的Repository类全称，带包名
+            sc.setSuperServiceClass(Optional.ofNullable(this.basePackage)
+                    .map(n -> n + ".common.base.repository.BaseRepository")
+                    .orElse(null));
+            //自定义继承的RepositoryImpl类全称，带包名
+            sc.setSuperServiceImplClass(Optional.ofNullable(this.basePackage)
+                    .map(n -> n + ".common.base.repository.BaseRepositoryImpl")
+                    .orElse(null));
+        }
+        if (Objects.equals(MpCodeTypeEnum.SERVICE, codeTypeEnum)) {
+            //自定义继承的Service类全称，带包名
+            sc.setSuperServiceClass(null);
+            //自定义继承的ServiceImpl类全称，带包名
+            sc.setSuperServiceImplClass(null);
+        }
+        if (Objects.equals(MpCodeTypeEnum.CONTROLLER, codeTypeEnum)) {
+            //自定义继承的Controller类全称，带包名
+            sc.setSuperControllerClass(null);
+        }
+        mpg.setStrategy(sc);
     }
 
     /**
@@ -525,11 +485,9 @@ public class MpGeneratorWrapper {
                 //字段前缀
                 .setFieldPrefix(this.columnPrefixArray)
                 //自定义继承的Entity类全称，带包名
-                .setSuperEntityClass(Optional.ofNullable(this.basePackage)
-                        .map(n -> n + ".common.base.entity.BaseEntity")
-                        .orElse(null))
+                .setSuperEntityClass(null)
                 //自定义基础的Entity类，公共字段
-                .setSuperEntityColumns("id", "gmt_create", "gmt_modified")
+                .setSuperEntityColumns((String[]) null)
                 //自定义继承的Mapper类全称，带包名
                 .setSuperMapperClass(null)
                 //自定义继承的Service类全称，带包名
@@ -560,6 +518,30 @@ public class MpGeneratorWrapper {
                 .setLogicDeleteFieldName("is_deleted")
                 //表填充字段
                 .setTableFillList(tableFillList);
+    }
+
+    /**
+     * 数据源配置
+     * <p>
+     * 通过该配置，指定需要生成代码的具体数据库
+     * </p>
+     *
+     * @return DataSourceConfig
+     */
+    private DataSourceConfig getDataSourceConfig() {
+        return new DataSourceConfig()
+                //数据库类型-[该类内置了常用的数据库类型【必须】]
+                .setDbType(DbType.MYSQL)
+                //类型转换-[默认由 dbType 类型决定选择对应数据库内置实现]
+                .setTypeConvert(new MySqlTypeConvert())
+                //驱动连接的URL
+                .setUrl(this.url)
+                //驱动名称
+                .setDriverName(this.driverName)
+                //数据库连接用户名
+                .setUsername(this.username)
+                //数据库连接密码
+                .setPassword(this.password);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

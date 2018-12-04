@@ -15,7 +15,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
  * </p>
  *
  * @author wubin
- * @since 2018-12-03
+ * @since 2018-12-04
  */
 @TableName("hc_test")
 public class TestDO extends BaseEntity {

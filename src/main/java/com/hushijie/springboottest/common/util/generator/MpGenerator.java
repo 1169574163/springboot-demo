@@ -82,8 +82,11 @@ public class MpGenerator {
     }
 
     public static void main(String[] args) {
-        mpGeneratorWrapper.generateController();
-        mpGeneratorWrapper.generateService();
-        mpGeneratorWrapper.generateDao();
+        mpGeneratorWrapper.execute(
+//                MpGeneratorWrapper.MpCodeTypeEnum.CONTROLLER,
+//                MpGeneratorWrapper.MpCodeTypeEnum.SERVICE,
+                MpGeneratorWrapper.MpCodeTypeEnum.REPOSITORY,
+                MpGeneratorWrapper.MpCodeTypeEnum.DAO
+        );
     }
 }

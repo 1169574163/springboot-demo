@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author wubin
- * @since 2018-12-03
+ * @since 2018-12-04
  */
 public interface TestMapper extends BaseMapper<TestDO> {
 
