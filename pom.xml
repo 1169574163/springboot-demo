@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.hushijie.springboottest</groupId>
+	<artifactId>springboottest-demo</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>springboottest-demo</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.6.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+        <!-- starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <!--<scope>test</scope>-->
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+        </dependency>
+		<!-- log4j2 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+		<!--&lt;!&ndash; yaml &ndash;&gt;-->
+		<!--<dependency>-->
+			<!--<groupId>com.fasterxml.jackson.dataformat</groupId>-->
+			<!--<artifactId>jackson-dataformat-yaml</artifactId>-->
+		<!--</dependency>-->
+        <!-- unit test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+		<!-- xml hot deployment -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- web -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<!--<exclusions>-->
+				<!--&lt;!&ndash;<exclusion>&ndash;&gt;-->
+					<!--&lt;!&ndash;<groupId>org.springframework.boot</groupId>&ndash;&gt;-->
+					<!--&lt;!&ndash;<artifactId>spring-boot-starter-json</artifactId>&ndash;&gt;-->
+				<!--&lt;!&ndash;</exclusion>&ndash;&gt;-->
+				<!--<exclusion>-->
+					<!--<groupId>com.fasterxml.jackson.core</groupId>-->
+					<!--<artifactId>jackson-databind</artifactId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
+		</dependency>
+		<!-- fastjson -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.51</version>
+		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>com.ruijc</groupId>-->
+			<!--<artifactId>spring-boot-starter-fastjson</artifactId>-->
+			<!--<version>2.2.0</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.springframework.boot</groupId>-->
+			<!--<artifactId>spring-boot-starter-amqp</artifactId>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.springframework.boot</groupId>-->
+			<!--<artifactId>spring-boot-starter-cache</artifactId>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.springframework.boot</groupId>-->
+			<!--<artifactId>spring-boot-starter-data-mongodb</artifactId>-->
+		<!--</dependency>-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<!-- session redis -->
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-data-redis</artifactId>
+		</dependency>
+		<!--&lt;!&ndash; redisson &ndash;&gt;-->
+		<!--<dependency>-->
+			<!--<groupId>org.redisson</groupId>-->
+			<!--<artifactId>redisson-spring-boot-starter</artifactId>-->
+			<!--<version>3.9.1</version>-->
+		<!--</dependency>-->
+		<!-- lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<!-- mysql -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- mybatis plus -->
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-boot-starter</artifactId>
+			<version>3.0.5</version>
+		</dependency>
+		<!-- druid -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid-spring-boot-starter</artifactId>
+			<version>1.1.10</version>
+		</dependency>
+		<!-- velocity engine -->
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity-engine-core</artifactId>
+			<version>2.0</version>
+		</dependency>
+		<!-- freemarker -->
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>2.3.23</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<fork>true</fork>
+				</configuration>
+			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+			</resource>
+		</resources>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<mysql.database.url>jdbc:mysql://127.0.0.1:3306/hc_test?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull&amp;useSSL=false</mysql.database.url>
+				<mysql.database.username>root</mysql.database.username>
+				<mysql.database.password>12345678</mysql.database.password>
+				<mysql.database.driver.class.name>com.mysql.jdbc.Driver</mysql.database.driver.class.name>
+				<mysql.database.async.init>false</mysql.database.async.init>
+				<mysql.database.initial.size>1</mysql.database.initial.size>
+				<mysql.database.max.active>20</mysql.database.max.active>
+				<mysql.database.min.idle>5</mysql.database.min.idle>
+				<mysql.database.max.wait>60000</mysql.database.max.wait>
+				<mysql.database.time.between.eviction.runs.millis>60000</mysql.database.time.between.eviction.runs.millis>
+				<mysql.database.min.evictable.idle.time.millis>300000</mysql.database.min.evictable.idle.time.millis>
+				<mysql.database.max.evictable.idle.time.millis>600000</mysql.database.max.evictable.idle.time.millis>
+				<mysql.database.validation.query>select 'hushijie'</mysql.database.validation.query>
+				<mysql.database.validation.query.timeout>10000</mysql.database.validation.query.timeout>
+				<mysql.database.test.while.idle>true</mysql.database.test.while.idle>
+				<mysql.database.test.on.borrow>false</mysql.database.test.on.borrow>
+				<mysql.database.test.on.return>false</mysql.database.test.on.return>
+				<mysql.database.keep.alive>true</mysql.database.keep.alive>
+			</properties>
+		</profile>
+		<profile>
+			<id>dev</id>
+		</profile>
+	</profiles>
+
+</project>

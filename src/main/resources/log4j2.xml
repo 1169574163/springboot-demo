@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="HC_SERVER" packages="">
+    <Properties>
+        <Property name="baseDir">./hc-logs</Property>
+        <Property name="console-pattern">%d|%p|%c{1.}|%M|dao|[%t]|%-10y|%m%n</Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="INFO" fileName="${baseDir}/info/hc-server.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/hc-server-%d{yyyy-MM-dd}.log.gz" append="true">
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d|%p|%c{1.}|%M|service|[%t]|%-10y|%m%n" />
+            <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${baseDir}" maxDepth="2">
+                    <IfFileName glob="*/hc-server-*.log.gz" />
+                    <IfLastModified age="60d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="DAO" fileName="${baseDir}/dao/hc-server-dao.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/hc-server-dao-%d{yyyy-MM-dd}.log.gz" append="true">
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d|%p|%c{1.}|%M|dao|[%t]|%-10y|%m%n" />
+            <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${baseDir}" maxDepth="2">
+                    <IfFileName glob="*/hc-server-dao-*.log.gz" />
+                    <IfLastModified age="60d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <!--druid的日志记录追加器-->
+        <RollingFile name="DruidSqlRollingFile" fileName="${baseDir}/druid/hc-server-druid.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/hc-server-druid-%d{yyyy-MM-dd}.log.gz" append="true">
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%d|%p|%c{1.}|%M|druid|[%t]|%-10y|%m%n" />
+            <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+            <DefaultRolloverStrategy max="20">
+                <Delete basePath="${baseDir}" maxDepth="2">
+                    <IfFileName glob="*/hc-server-druid-*.log.gz" />
+                    <IfLastModified age="60d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${console-pattern}" />
+        </Console>
+    </Appenders>
+    <Loggers>
+        <!--记录druid-sql的记录-->
+        <logger name="druid.sql.Statement" level="debug" additivity="false">
+            <appender-ref ref="DruidSqlRollingFile"/>
+        </logger>
+        <!--<Logger name="com.hushijie.**.mapper" level="debug" additivity="false">-->
+            <!--<AppenderRef ref="DAO" />-->
+        <!--</Logger>-->
+        <Root level="info">
+            <appender-ref ref="INFO"/>
+            <appender-ref ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
